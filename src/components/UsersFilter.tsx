@@ -10,11 +10,28 @@ const users: User[] = [
   { id: 5, name: "Dana" },
 ];
 
+// подсветка текста
+function highlight(text: string, query: string) {
+  if (!query) return text;
+
+  const parts = text.split(new RegExp(`(${query})`, "gi"));
+
+  return parts.map((part, i) =>
+    part.toLowerCase() === query.toLowerCase() ? (
+      <span key={i} style={{ background: "#ffe58f" }}>
+        {part}
+      </span>
+    ) : (
+      part
+    )
+  );
+}
+
 function UsersFilter() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [filteredUsers, setFilteredUsers] = useState(users);
 
+  // debounce
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(search);
@@ -23,12 +40,10 @@ function UsersFilter() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  useEffect(() => {
-    const result = users.filter((user) =>
-      user.name.toLowerCase().includes(debouncedSearch.toLowerCase())
-    );
-    setFilteredUsers(result);
-  }, [debouncedSearch]);
+  // фильтрация БЕЗ лишнего state
+  const filteredUsers = users.filter((user) =>
+    user.name.toLowerCase().includes(debouncedSearch.toLowerCase())
+  );
 
   return (
     <div
@@ -60,34 +75,32 @@ function UsersFilter() {
         }}
       />
 
-      <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-        {filteredUsers.map((user) => (
-          <li
-            key={user.id}
-            style={{
-              padding: "10px",
-              borderRadius: "6px",
-              marginBottom: "6px",
-              background: "#f5f5f5",
-              transition: "0.2s",
-              cursor: "pointer",
-            }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.background = "#e6f4ff")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.background = "#f5f5f5")
-            }
-          >
-            {user.name}
-          </li>
-        ))}
-      </ul>
-
-      {filteredUsers.length === 0 && (
-        <p style={{ color: "#999", marginTop: "10px" }}>
-          😔 Ничего не найдено
-        </p>
+      {filteredUsers.length === 0 ? (
+        <p style={{ color: "#999" }}>😔 Ничего не найдено</p>
+      ) : (
+        <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+          {filteredUsers.map((user) => (
+            <li
+              key={user.id}
+              style={{
+                padding: "10px",
+                borderRadius: "6px",
+                marginBottom: "6px",
+                background: "#f5f5f5",
+                transition: "0.2s",
+                cursor: "pointer",
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.background = "#e6f4ff")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.background = "#f5f5f5")
+              }
+            >
+              {highlight(user.name, debouncedSearch)}
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );
